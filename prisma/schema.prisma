@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model TbAccountInfo {
+  id               Int       @id @default(autoincrement())
+  password         String
+  email            String    @unique
+  tokenKey         String?
+  accUserKey       String?
+  tokenExpiresAt   DateTime?
+  loginIP          String?
+  active           Boolean   @default(true)
+  device           String?
+  colpic           String?
+  sports           Int[]     // Array of integers to save data ids like [1, 2, 3, 4]
+  name             String?   // Optional name field
+  dayOfBirth       DateTime? // Optional DateTime for the date of birth
+  periodicitySport String[]  // Array of strings for periodicity data like ['Month', 'Tuesday']
+  gender           String?   // Gender field ('Male', 'Female', 'Other', or null)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  firstLogin       Boolean   @default(true)
+}
+
+model Sport {
+    id        Int      @id @default(autoincrement())
+    name      String
+    sortOrder Int      @default(1)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
