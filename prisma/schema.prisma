@@ -47,8 +47,8 @@ model ScanHistory {
   id          Int           @id @default(autoincrement())
   scanDate    DateTime      @default(now()) // Thời gian quét
   imageUrl    String        // URL hình ảnh quét
-  result      String        // Kết quả (ví dụ: 'Benign lesion', 'No abnormalities detected', ...)
-  advice      String        // Lời khuyên mô tả chi tiết
+  result      String?        // Kết quả (ví dụ: 'Benign lesion', 'No abnormalities detected', ...)
+  advice      String?        // Lời khuyên mô tả chi tiết
   diseaseId   Int?          // Liên kết với bảng Disease
   disease     Disease?      @relation(fields: [diseaseId], references: [id])
   scannedBy   Int           // Liên kết với id trong bảng TbAccountInfo
@@ -60,7 +60,7 @@ model ScanHistory {
 model Disease {
   id          Int           @id @default(autoincrement())
   name        String        @unique // Tên loại bệnh
-  description String        // Mô tả chi tiết
+  description String?        // Mô tả chi tiết
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   scans       ScanHistory[] // Mối quan hệ với bảng ScanHistory

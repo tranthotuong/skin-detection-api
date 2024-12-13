@@ -17,13 +17,13 @@ export class DiagnosisService {
   async runDiagnosis(filePath: string): Promise<string> {
     try {
       // Step 1: Upload the image to Cloudinary and get its URL
-      const uploadResult = await this.cloudinaryService.uploadImage(filePath);
-      const imageUrl = uploadResult.secure_url;
-      console.log(`Image uploaded to Cloudinary: ${imageUrl}`);
+      // const uploadResult = await this.cloudinaryService.uploadImage(filePath);
+      // const imageUrl = uploadResult.secure_url;
+      // console.log(`Image uploaded to Cloudinary: ${imageUrl}`);
 
 
       // Step 2: Call the Python script with the Cloudinary image URL
-      const diagnosis = await this.callPythonScript(imageUrl);
+      const diagnosis = await this.callPythonScript(filePath);
       console.log(`Diagnosis result: ${diagnosis}`);
 
       return diagnosis;
@@ -40,15 +40,35 @@ export class DiagnosisService {
    */
   private callPythonScript(imageUrl: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const scriptPath = path.join(__dirname, '../python_scripts/app.py');
-
-      // Execute the Python script
-      exec(`python ${scriptPath} --image_url "${imageUrl}"`, (error, stdout, stderr) => {
+      // Construct the full path to the Python script
+      const scriptPath = path.join(__dirname, `../../../${process.env.MODEL_SKIN_PATH}`);
+      
+      // Execute the Python script with the image URL as an argument
+      const command = `python ${scriptPath} --image_url "${imageUrl}"`;
+      console.log(command)
+      exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error in Python script: ${stderr}`);
-          reject(`Python script error: ${stderr}`);
+          reject(new Error(`Python script error: ${stderr || error.message}`));
+          return;
         }
-        resolve(stdout.trim()); // Return the script's standard output
+        // Find the JSON part in the output
+        const startIndex = stdout.indexOf('{"rep_skin_detection"');
+        if (startIndex === -1) {
+          reject(new Error('No valid JSON found in Python script output.'));
+          return;
+        }
+
+        const jsonString = stdout.substring(startIndex).trim();
+
+        try {
+          // Parse the output if it's expected to be JSON
+          const output = JSON.parse(jsonString);
+          resolve(output);
+        } catch (parseError) {
+          console.error('Failed to parse Python script output:', stdout);
+          reject(new Error(`Failed to parse Python script output: ${jsonString}`));
+        }
       });
     });
   }

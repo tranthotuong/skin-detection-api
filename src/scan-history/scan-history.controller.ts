@@ -54,8 +54,6 @@ export class ScanHistoryController {
       // Step 1: Upload the image to Cloudinary
       const uploadResult = await this.diagnosisService.cloudinaryService.uploadImage(filePath);
       const imageUrl = uploadResult.secure_url;
-      console.log(imageUrl);
-      debugger;
       // Step 2: Save the initial ScanHistory record
       const scanHistory = await this.scanHistoryService.createScanHistory({
         scanDate: new Date(),
@@ -67,12 +65,13 @@ export class ScanHistoryController {
       });
 
       // Step 3: Run the Python diagnosis script
-      const diagnosisResult = await this.diagnosisService.runDiagnosis(filePath);
+      const diagnosisResult = await this.diagnosisService.runDiagnosis(imageUrl);
 
       // Step 4: Update ScanHistory with diagnosis result
       const updatedScanHistory = await this.scanHistoryService.updateScanHistory(scanHistory.id, {
-        result: diagnosisResult,
-        advice: body.advice || this.generateAdvice(diagnosisResult), // Generate advice dynamically
+        diseaseId: diagnosisResult['rep_skin_detection'].data.diagnosis.id,
+        result: JSON.stringify(diagnosisResult),
+        advice: body.advice || this.generateAdvice(diagnosisResult['rep_skin_detection'].data.diagnosis.id), // Generate advice dynamically
       });
 
       return {
@@ -98,22 +97,22 @@ export class ScanHistoryController {
     }
   }
 
-  private generateAdvice(diagnosisResult: string): string {
+  private generateAdvice(id: number): string {
     // Custom logic to generate advice based on the diagnosis result
-    switch (diagnosisResult) {
-      case 'Actinic keratoses (akiec)':
+    switch (id) {
+      case 2:
         return 'Actinic keratoses (AKs) are rough, scaly patches caused by prolonged sun exposure and are considered precancerous, as they can develop into squamous cell carcinoma. Early treatment is essential to prevent progression. Options include topical medications like 5-fluorouracil and imiquimod, which target abnormal cells, and procedures such as cryotherapy, photodynamic therapy, or laser resurfacing to remove or destroy lesions. Regular dermatologist visits and diligent sun protection are critical for managing AKs and preventing further skin damage.';
-      case 'Basal cell carcinoma (bcc)':
+      case 3:
         return 'Preventive measures are vital. Use broad-spectrum sunscreen, avoid excessive sun exposure, and perform regular skin self-checks. If you notice any pearly, pink, or ulcerated growths, consult a dermatologist promptly. Regular follow-ups are essential to monitor for recurrence or new lesions.';
-      case 'Benign keratosis-like lesions (bkl)':
+      case 4:
         return 'There is no way to prevent BKLs as they are associated with aging and genetics rather than sun exposure. However, regular self-skin exams and dermatologist visits are advised to distinguish these lesions from potentially harmful ones. If a lesion changes in size, color, or texture, seek professional evaluation to rule out skin cancer.';
-      case 'Dermatofibroma (df)':
+      case 5:
         return 'Dermatofibroma (DF) is a common, benign skin growth that appears as a small, firm nodule, often on the lower legs. It is typically harmless, but may occasionally cause itching or tenderness. Treatment is usually unnecessary unless the lesion is bothersome, in which case options like surgical removal or cryotherapy can be considered. Regular monitoring is advised to ensure no changes suggestive of other conditions.';
-      case 'Melanoma (mel)':
+      case 6:
         return 'Treatment typically involves surgical excision, with advanced cases requiring immunotherapy, targeted therapy, chemotherapy, or radiation. Regular skin checks and self-examinations using the ABCDE rule (Asymmetry, Border irregularity, Color variation, Diameter over 6mm, and Evolution) are critical for early detection. Protecting your skin from UV exposure is the most effective prevention strategy.';
-      case 'Melanocytic nevi (nv)':
+      case 7:
         return 'No treatment is typically necessary unless the mole causes discomfort, irritation, or cosmetic concerns. However, it’s essential to monitor moles for changes in size, shape, or color, as these could indicate melanoma, a type of skin cancer. Regular skin checks and prompt evaluation of atypical moles are key to maintaining skin health.';
-      case 'Vascular lesions (vasc)':
+      case 8:
         return 'Treatment options vary based on the type and severity of the lesion. These include laser therapy, sclerotherapy (for spider veins), or surgical removal for larger or problematic lesions. In many cases, vascular lesions do not require treatment unless they interfere with function or cause significant distress. Regular monitoring and consultation with a dermatologist or vascular specialist are recommended for proper management.';
       default:
         return 'Contact a healthcare professional for further evaluation.';
