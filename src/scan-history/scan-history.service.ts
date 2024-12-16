@@ -34,4 +34,61 @@ export class ScanHistoryService {
       data,
     });
   }
+
+  /**
+   * Retrieves the top 10 most recent ScanHistory records
+   * @returns 
+   */
+  async getTop10History() {
+    return await this.prisma.scanHistory.findMany({
+      orderBy: {
+        scanDate: 'desc', // Sort by the most recent scan date
+      },
+      take: 10, // Limit to top 10 records
+      select: {
+        id: true,
+        imageUrl: true,
+        diseaseId: true,
+        scanDate: true,
+        disease: {
+          select: {
+            name: true, // Fetch the disease name
+          },
+        },
+      },
+    });
+  }
+  /**
+   * Tuong.TT 2024-12-15
+   * Get List Histories
+   * @param diseaseName 
+   * @param sortOrder 
+   * @returns 
+   */
+  async getHistories(diseaseName: string, sortOrder: 'asc' | 'desc') {
+    return await this.prisma.scanHistory.findMany({
+      where: {
+        disease: {
+          name: {
+            contains: diseaseName, // Matches partial or full disease names
+            mode: 'insensitive', // Case-insensitive search
+          },
+        },
+      },
+      orderBy: {
+        scanDate: sortOrder, // Sort dynamically by scanDate (asc or desc)
+      },
+      select: {
+        id: true,
+        imageUrl: true,
+        diseaseId: true,
+        scanDate: true,
+        disease: {
+          select: {
+            name: true, // Fetch the disease name
+          },
+        },
+      },
+    });
+  }
 }

@@ -7,6 +7,8 @@ import {
   Body,
   Req,
   BadRequestException,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TokenValidationGuard } from 'src/guards/token-validation.guard';
@@ -22,6 +24,27 @@ export class ScanHistoryController {
     private readonly scanHistoryService: ScanHistoryService,
   ) { }
 
+  /**
+   * Endpoint to get the top 10 most recent scan history records.
+   */
+  @Get('top')
+  @UseGuards(TokenValidationGuard)
+  async getTop10History() {
+    return await this.scanHistoryService.getTop10History();
+  }
+
+  /**
+   * Endpoint to get the top 10 most recent scan history records.
+   */
+  @Get('list')
+  @UseGuards(TokenValidationGuard)
+  async getHistories(
+    @Query('diseaseName') diseaseName: string,
+    @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'desc', // Default to 'desc'
+  ) {
+    return await this.scanHistoryService.getHistories(diseaseName, sortOrder);
+  }
+  
   @Post('diagnose')
   @UseGuards(TokenValidationGuard)
   @UseInterceptors(
