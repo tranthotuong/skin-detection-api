@@ -9,6 +9,9 @@ import {
   BadRequestException,
   Get,
   Query,
+  Param,
+  ParseIntPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TokenValidationGuard } from 'src/guards/token-validation.guard';
@@ -22,8 +25,7 @@ export class ScanHistoryController {
   constructor(
     private readonly diagnosisService: DiagnosisService,
     private readonly scanHistoryService: ScanHistoryService,
-  ) { }
-
+  ) { }  
   /**
    * Endpoint to get the top 10 most recent scan history records.
    */
@@ -44,7 +46,7 @@ export class ScanHistoryController {
   ) {
     return await this.scanHistoryService.getHistories(diseaseName, sortOrder);
   }
-  
+
   @Post('diagnose')
   @UseGuards(TokenValidationGuard)
   @UseInterceptors(
@@ -69,7 +71,6 @@ export class ScanHistoryController {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
-    console.log(file)
     const filePath = file.path;
     const user = request.user;
 
@@ -107,6 +108,20 @@ export class ScanHistoryController {
     } finally {
       // Clean up the temporary file
       await this.deleteTemporaryFile(filePath);
+    }
+  }
+
+  @Get(':id')
+  @UseGuards(TokenValidationGuard)
+  async getHistoryById(@Param('id', ParseIntPipe) id: number) {
+    try {
+      let historyDetail = await this.scanHistoryService.getHistoryById(id);
+      if (!historyDetail) {
+        throw new NotFoundException(`No scan history found for ID: ${id}`);
+      }
+      return historyDetail
+    } catch (error) {
+      throw new BadRequestException(error);
     }
   }
 

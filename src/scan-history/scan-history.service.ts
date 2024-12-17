@@ -3,7 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ScanHistoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Creates a new ScanHistory record.
@@ -86,6 +86,29 @@ export class ScanHistoryService {
         disease: {
           select: {
             name: true, // Fetch the disease name
+          },
+        },
+      },
+    });
+  }
+  /**
+  * Get detail of a scan history by ID.
+  * @param id - The ID of the scan history.
+  */
+  async getHistoryById(id: number) {
+    return await this.prisma.scanHistory.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        imageUrl: true,
+        diseaseId: true,
+        scanDate: true,
+        result: true,
+        advice: true,
+        disease: {
+          select: {
+            name: true, // Fetch disease name
+            description: true,
           },
         },
       },
