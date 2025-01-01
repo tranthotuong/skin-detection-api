@@ -97,7 +97,7 @@ export class ScanHistoryController {
         result: JSON.stringify(diagnosisResult),
         advice: body.advice || this.generateAdvice(diagnosisResult['rep_skin_detection'].data.diagnosis.id), // Generate advice dynamically
       });
-
+      console.log(updatedScanHistory);
       return {
         message: 'Diagnosis completed successfully',
         scanHistory: updatedScanHistory,

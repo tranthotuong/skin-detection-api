@@ -45,7 +45,6 @@ export class DiagnosisService {
       
       // Execute the Python script with the image URL as an argument
       const command = `python ${scriptPath} --image_url "${imageUrl}"`;
-      console.log(command)
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(`Error in Python script: ${stderr}`);

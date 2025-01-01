@@ -109,6 +109,8 @@ export class ScanHistoryService {
           select: {
             name: true, // Fetch disease name
             description: true,
+            risk:true,
+            url:true,
           },
         },
       },
